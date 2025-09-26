@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Business Dashboard</title>
+  <!-- Embedded styles (all-in-one file) -->
+  <style>
+    :root{
+      --bg:#0f1724;
+      --card:#0b1220;
+      --muted:#94a3b8;
+      --accent:#06b6d4;
+      --glass: rgba(255,255,255,0.03);
+      --glass-2: rgba(255,255,255,0.02);
+      --success:#10b981;
+      --danger:#ef4444;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#071226 0%, #081426 60%);color:#e6eef6}
+    .wrap{display:flex;min-height:100vh}
+    /* Sidebar */
+    .sidebar{width:260px;background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));backdrop-filter: blur(6px);padding:20px;display:flex;flex-direction:column;gap:18px}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{height:46px;width:46px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:700}
+    .brand h1{font-size:16px;margin:0}
+    .nav{display:flex;flex-direction:column;gap:8px;margin-top:6px}
+    .nav a{padding:10px 12px;border-radius:8px;color:var(--muted);text-decoration:none;display:flex;justify-content:space-between;align-items:center}
+    .nav a.active, .nav a:hover{background:var(--glass);color:#fff}
+    .quick{margin-top:auto}
+    .profile{display:flex;gap:10px;align-items:center}
+    .avatar{width:44px;height:44px;border-radius:8px;background:linear-gradient(135deg,#334155,#0ea5a4);display:flex;align-items:center;justify-content:center;font-weight:700}
+    /* Main area */
+    .main{flex:1;padding:22px}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:18px}
+    .search{flex:1;display:flex;align-items:center;background:var(--glass-2);padding:10px 12px;border-radius:10px;gap:8px}
+    .search input{background:transparent;border:0;outline:none;color:inherit;width:100%}
+    .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));padding:16px;border-radius:12px;box-shadow:0 6px 18px rgba(2,6,23,0.6)}
+    .kpi h3{margin:0;font-size:13px;color:var(--muted)}
+    .kpi .value{font-size:20px;font-weight:700;margin-top:6px}
+    /* Charts row */
+    .row{display:grid;grid-template-columns:1fr 420px;gap:14px;margin-bottom:14px}
+    .chart-wrap{padding:14px}
+    canvas{width:100%!important;height:260px!important}
+    .small-list{display:flex;flex-direction:column;gap:10px}
+    .txn{display:flex;justify-content:space-between;align-items:center;padding:10px;border-radius:10px;background:linear-gradient(180deg, rgba(255,255,255,0.01), transparent)}
+    .txn .meta{display:flex;gap:10px;align-items:center}
+    .pill{padding:6px 8px;border-radius:999px;background:rgba(255,255,255,0.03);font-size:12px}
+    /* Table */
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:12px;text-align:left;border-bottom:1px solid rgba(255,255,255,0.03);font-size:14px}
+    th{font-size:12px;color:var(--muted)}
+    /* Responsive */
+    @media(max-width:1000px){.kpis{grid-template-columns:repeat(2,1fr)}.row{grid-template-columns:1fr}}
+    @media(max-width:640px){.sidebar{display:none}.topbar{flex-direction:column;align-items:stretch}.kpis{grid-template-columns:1fr}}
+    /* Tiny utilities */
+    .muted{color:var(--muted)}
+    .flex{display:flex;gap:10px;align-items:center}
+    .btn{padding:8px 12px;border-radius:10px;background:linear-gradient(90deg,var(--accent),#7c3aed);border:0;color:#021025;cursor:pointer;font-weight:700}
+    .text-xxs{font-size:12px}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="logo">BD</div>
+        <div>
+          <h1>BusinessDash</h1>
+          <div class="muted text-xxs">Overview & analytics</div>
+        </div>
+      </div>
+
+      <nav class="nav">
+        <a class="active" href="#">Overview</a>
+        <a href="#">Sales</a>
+        <a href="#">Customers</a>
+        <a href="#">Products</a>
+        <a href="#">Reports</a>
+        <a href="#">Settings</a>
+      </nav>
+
+      <div class="quick">
+        <div class="profile">
+          <div class="avatar">NR</div>
+          <div>
+            <div style="font-weight:700">Nikki Rokala</div>
+            <div class="muted text-xxs">Admin</div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div class="search">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 21L15 15" stroke="#9fb2c7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z" stroke="#9fb2c7" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <input placeholder="Search users, invoices, products..." />
+        </div>
+        <div class="flex">
+          <button class="btn">Create Report</button>
+          <div class="pill">Notifications 3</div>
+        </div>
+      </div>
+
+      <section class="kpis">
+        <div class="card kpi">
+          <h3>Total Revenue</h3>
+          <div class="value">$124,780 <span class="muted text-xxs">(+8.2%)</span></div>
+          <div class="muted text-xxs">This month</div>
+        </div>
+        <div class="card kpi">
+          <h3>New Customers</h3>
+          <div class="value">1,420 <span class="muted text-xxs">(+4.6%)</span></div>
+          <div class="muted text-xxs">Last 30 days</div>
+        </div>
+        <div class="card kpi">
+          <h3>Conversion Rate</h3>
+          <div class="value">3.9% <span class="muted text-xxs">(-0.4%)</span></div>
+          <div class="muted text-xxs">Site visitors</div>
+        </div>
+        <div class="card kpi">
+          <h3>Avg Order</h3>
+          <div class="value">$78.40 <span class="muted text-xxs">(+1.3%)</span></div>
+          <div class="muted text-xxs">This month</div>
+        </div>
+      </section>
+
+      <section class="row">
+        <div class="card chart-wrap">
+          <h3 style="margin:0 0 8px 0">Revenue (Last 12 months)</h3>
+          <canvas id="lineChart"></canvas>
+        </div>
+
+        <div class="card chart-wrap">
+          <h3 style="margin:0 0 8px 0">Sales by Channel</h3>
+          <canvas id="pieChart" style="height:220px"></canvas>
+
+          <div style="margin-top:12px" class="small-list">
+            <div class="txn">
+              <div class="meta"><div class="pill">Web</div><div><strong>58%</strong><div class="muted text-xxs">Online store</div></div></div>
+              <div class="muted">$72.4k</div>
+            </div>
+            <div class="txn">
+              <div class="meta"><div class="pill">Retail</div><div><strong>26%</strong><div class="muted text-xxs">In-store</div></div></div>
+              <div class="muted">$32.2k</div>
+            </div>
+            <div class="txn">
+              <div class="meta"><div class="pill">Wholesale</div><div><strong>16%</strong><div class="muted text-xxs">Partners</div></div></div>
+              <div class="muted">$20.1k</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" style="margin-bottom:14px">
+        <h3 style="margin:0 0 8px 0">Recent Orders</h3>
+        <div style="overflow:auto">
+          <table>
+            <thead>
+              <tr><th>Order ID</th><th>Customer</th><th>Status</th><th>Amount</th><th>Date</th></tr>
+            </thead>
+            <tbody id="orders"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section style="display:grid;grid-template-columns:1fr 300px;gap:14px">
+        <div class="card">
+          <h3 style="margin:0 0 8px 0">Top Products</h3>
+          <ol style="margin:0;padding-left:18px">
+            <li>Eco Bottle — 1,240 sold</li>
+            <li>Comfy Hoodie — 940 sold</li>
+            <li>Wireless Earbuds — 730 sold</li>
+            <li>Desk Lamp — 410 sold</li>
+          </ol>
+        </div>
+
+        <div class="card">
+          <h3 style="margin:0 0 8px 0">Quick Settings</h3>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <label class="muted text-xxs">Currency</label>
+            <select style="padding:8px;border-radius:8px;background:transparent;color:inherit;border:1px solid rgba(255,255,255,0.03)">
+              <option>USD</option>
+              <option>INR</option>
+              <option>EUR</option>
+            </select>
+            <label class="muted text-xxs">Theme</label>
+            <div style="display:flex;gap:8px">
+              <button class="btn" onclick="toggleTheme()">Toggle Theme</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <footer style="margin-top:18px;text-align:center;color:var(--muted);font-size:13px">© <span id="year"></span> BusinessDash — built with ❤️</footer>
+
+    </main>
+  </div>
+
+  <!-- Embedded JS (all-in-one file). Uses Chart.js CDN for charts. -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // small helpers
+    function el(id){return document.getElementById(id)}
+    document.getElementById('year').innerText = new Date().getFullYear();
+
+    // Sample data (replace with real API calls)
+    const months = ['Oct','Nov','Dec','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep'];
+    const revenue = [8200,9400,10200,8400,11800,12500,13200,12800,14000,15000,16200,12480];
+
+    // Line chart
+    const ctx = document.getElementById('lineChart').getContext('2d');
+    const lineChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: months,
+        datasets: [{
+          label: 'Revenue',
+          data: revenue,
+          fill: true,
+          tension: 0.25,
+          borderWidth: 2,
+          pointRadius: 3,
+          backgroundColor: 'rgba(6,182,212,0.12)',
+          borderColor: 'rgba(6,182,212,0.95)'
+        }]
+      },
+      options: {
+        plugins:{legend:{display:false}},
+        scales:{y:{beginAtZero:false,ticks:{callback:function(v){return '$'+v}}}}
+      }
+    });
+
+    // Pie chart
+    const pctx = document.getElementById('pieChart').getContext('2d');
+    const pieChart = new Chart(pctx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Web','Retail','Wholesale'],
+        datasets:[{data:[58,26,16],hoverOffset:6}]
+      },
+      options:{plugins:{legend:{position:'bottom'}}}
+    });
+
+    // Generate mock orders
+    const ordersData = [
+      {id:'#OD-1001',name:'Asha Patel',status:'Delivered',amount:120.50,date:'2025-09-22'},
+      {id:'#OD-1002',name:'Ravi Kumar',status:'Processing',amount:78.99,date:'2025-09-23'},
+      {id:'#OD-1003',name:'Priya Singh',status:'Shipped',amount:240.00,date:'2025-09-23'},
+      {id:'#OD-1004',name:'Rahul Verma',status:'Cancelled',amount:12.00,date:'2025-09-24'},
+      {id:'#OD-1005',name:'Sneha Rao',status:'Delivered',amount:95.75,date:'2025-09-25'}
+    ];
+
+    function renderOrders(){
+      const tbody = el('orders');
+      tbody.innerHTML = '';
+      for(const o of ordersData){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${o.id}</td><td>${o.name}</td><td>${o.status}</td><td>$${o.amount.toFixed(2)}</td><td>${o.date}</td>`;
+        tbody.appendChild(tr);
+      }
+    }
+    renderOrders();
+
+    // Theme toggle (very lightweight)
+    function toggleTheme(){
+      const r = document.documentElement;
+      if(r.style.filter === 'invert(1)') r.style.filter = '';
+      else r.style.filter = 'invert(1) hue-rotate(180deg)';
+    }
+
+    // Example: Hook to fetch real data
+    // function fetchDashboard(){
+    //   fetch('/api/dashboard')
+    //     .then(res=>res.json())
+    //     .then(data=>{ /* update charts and tables */ })
+    // }
+  </script>
+</body>
+</html>
